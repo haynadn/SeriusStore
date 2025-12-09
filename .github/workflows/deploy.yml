@@ -8,9 +8,32 @@ on:
       - master
 
 jobs:
-  deploy:
+  test:
     runs-on: self-hosted
-    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test Backend (Build)
+        run: |
+          echo "🧪 Testing Backend Build..."
+          cd backend
+          # Use docker to build to ensure environment consistency without installing go on host
+          docker build -t test-backend-${{ github.sha }} .
+          docker image rm test-backend-${{ github.sha }}
+
+      - name: Test Frontend (Build)
+        run: |
+          echo "🧪 Testing Frontend Build..."
+          cd frontend
+          # Use docker to build
+          docker build -t test-frontend-${{ github.sha }} .
+          docker image rm test-frontend-${{ github.sha }}
+
+  deploy:
+    needs: test
+    runs-on: self-hosted
+    if: success()
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
