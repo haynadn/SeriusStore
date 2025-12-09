@@ -7,7 +7,7 @@ ENV=${1:-prod}
 
 echo "🚀 Deploying SeriusStore to $ENV environment..."
 
-cd /root/SeriusStore
+cd /home/seriusstore/SeriusStore
 
 # Pull latest changes
 git fetch origin
