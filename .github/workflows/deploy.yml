@@ -1,0 +1,49 @@
+name: Deploy SeriusStore
+
+on:
+  push:
+    branches:
+      - dev
+      - prod
+      - master
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set environment
+        id: set-env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
+            echo "ENV=dev" >> $GITHUB_OUTPUT
+            echo "COMPOSE_FILE=docker-compose.dev.yml" >> $GITHUB_OUTPUT
+          else
+            echo "ENV=prod" >> $GITHUB_OUTPUT
+            echo "COMPOSE_FILE=docker-compose.prod.yml" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy ${{ steps.set-env.outputs.ENV }}
+        run: |
+          echo "🚀 Deploying to ${{ steps.set-env.outputs.ENV }} environment..."
+          docker-compose -f ${{ steps.set-env.outputs.COMPOSE_FILE }} down || true
+          docker-compose -f ${{ steps.set-env.outputs.COMPOSE_FILE }} up -d --build
+          echo "✅ Deployment complete!"
+
+      - name: Health check
+        run: |
+          sleep 10
+          if [[ "${{ steps.set-env.outputs.ENV }}" == "dev" ]]; then
+            curl -f http://localhost:3001 || echo "⚠️ Frontend dev not responding"
+            curl -f http://localhost:8081/api/health || echo "⚠️ Backend dev not responding"
+          else
+            curl -f http://localhost:3000 || echo "⚠️ Frontend prod not responding"
+            curl -f http://localhost:8080/api/health || echo "⚠️ Backend prod not responding"
+          fi
+
+      - name: Cleanup old images
+        run: |
+          docker image prune -f

@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  postgres-prod:
+    image: postgres:15-alpine
+    container_name: seriusstore_db_prod
+    environment:
+      POSTGRES_DB: ecommerce
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  backend-prod:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: seriusstore_backend_prod
+    environment:
+      DB_HOST: postgres-prod
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_NAME: ecommerce
+      JWT_SECRET: ${JWT_SECRET:-change-this-in-production}
+      PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-prod
+    volumes:
+      - ./backend/uploads:/app/uploads
+    restart: unless-stopped
+
+  frontend-prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: seriusstore_frontend_prod
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend-prod
+    restart: unless-stopped
+
+volumes:
+  postgres_data_prod:
