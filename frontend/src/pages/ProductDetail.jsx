@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import Loading from '../components/Loading';
 
-const API_URL = 'http://localhost:8080';
+const API_URL = import.meta.env.PROD ? '' : 'http://localhost:8080';
 
 export default function ProductDetail() {
     const { id } = useParams();
