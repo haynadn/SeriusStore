@@ -28,8 +28,8 @@ apt update && apt install -y docker-compose
 ### 1. Clone Repository
 ```bash
 cd /root
-git clone https://github.com/YOUR_USERNAME/portfolio.git
-cd portfolio
+git clone https://github.com/haynadn/SeriusStore.git
+cd SeriusStore
 ```
 
 ### 2. Update JWT Secret (PENTING!)
